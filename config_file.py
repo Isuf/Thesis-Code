@@ -1,6 +1,6 @@
 import os
 
-dataset_keywords = "Nulled"
+dataset_keywords = "Experiment"
 path = "D:\\Tema NTNU\\Data\\"+dataset_keywords+"\\Deliu\\" 
 
 class Parameters: 
@@ -9,8 +9,8 @@ class Parameters:
 
       def __init__(self):
           self.param={
-                      "pos_file" : "positive.txt",
-                      "neg_file" : "negative.txt",
+                      "pos_file" : "positive_20K_2603.txt",
+                      "neg_file" : "negative_20K_2603.txt",
                       "positive_data_location" : "full_path_positive_data",
                       "negative_data_location" : "full_path_negative_data",
                       "data" : "data.txt",
@@ -22,7 +22,7 @@ class Parameters:
                                     "vec_size" : 300,
                                     "min_count" : 5,
                                     "Google_w2v" : "D:\\Official_Datasets\\Google word2vec trained\\GoogleNews-vectors-negative300.bin",
-                                    "use_google_w2v" : True
+                                    "use_google_w2v" : False
                        },
 
                      "ngrams_bow" : {
@@ -30,8 +30,8 @@ class Parameters:
                                      "max_ngrams": 2,
                                      "use_hashing": False,   # Smth for sparsity
                                      "n_features": 2 ** 16,  #n_features when using the hashing vectorizer. 
-                                     "ngram_unit": "word",   #'char' for character;  'word' for word
-                                     "method": "bow"      # "bow" for Bag-of-Words;  "ngrams" for n(1,2,...) grams
+                                     "ngram_unit": "char",   #'char' for character;  'word' for word
+                                     "method": "ngrams"      # "bow" for Bag-of-Words;  "ngrams" for n(1,2,...) grams
                        }
       }
 

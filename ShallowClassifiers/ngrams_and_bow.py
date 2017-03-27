@@ -118,9 +118,10 @@ def run_classification(file_location, labels_location, param,Dataset_name="my_da
                 if param["ngrams_bow"]["method"] =="bow":
                    X_train,X_test=feature_construction_BOW(X_train,X_test,param)
 
-                else:
+                elif param["ngrams_bow"]["method"] =="ngrams":
                    X_train,X_test=feature_construction_ngrams(X_train,X_test,param)
-
+                else:
+                    print("The method name is wrong ...")
 
 
                 #2 Training/Classification

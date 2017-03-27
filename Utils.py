@@ -1,3 +1,5 @@
+import pickle
+
 ''' Loads a file and saves its content as a list 
        [ "this is test 1", " this is test 2"]
 '''
@@ -25,3 +27,13 @@ def write_list_to_file(fileName, list, mode="w"):
 def write_to_file(fileName, text, mode="w"):
     with open(fileName,mode, encoding='utf-8') as f:
          f.write(text) # python will convert \n to os.linesep 
+
+
+def save_pickle(self, path):
+    with open(path, 'wb') as f:
+        pickle.dump(self, f)
+    #logger.info('save model to path %s' % path)
+    return None
+def load_pickle(path):
+    with open(path, 'rb') as f:
+        return pickle.load(f)

@@ -27,6 +27,7 @@ def build_word2vec_model(parameters):
         else:
            model_name = parameters["word2vec"]["model_name"]
 
+        print(model_name)
         model = word2vec.KeyedVectors.load_word2vec_format(model_name, binary=True)
         model.init_sims(replace=True)
 
@@ -40,4 +41,4 @@ confcls = config_file.Parameters()
 param = confcls.param
 
 w2v_model,_ =build_word2vec_model(param)
-print(w2v_model.most_similar("film"))
+#print(w2v_model.most_similar("film"))

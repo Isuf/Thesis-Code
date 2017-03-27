@@ -34,8 +34,10 @@ def Tanh(x):
 def Iden(x):
     y = x
     return(y)
+
+vec_size=300
        
-def train_conv_net(datasets,
+def train_conv_net(i,datasets,
                    U,
                    img_w=300, 
                    filter_hs=[3,4,5],
@@ -48,7 +50,7 @@ def train_conv_net(datasets,
                    conv_non_linear="relu",
                    activations=[Iden],
                    sqr_norm_lim=9,
-                   non_static=True):
+                   non_static=True,):
     """
     Train a simple conv net
     img_h = sentence length (padded where necessary)
@@ -77,10 +79,11 @@ def train_conv_net(datasets,
     index = T.lscalar()
     x = T.matrix('x')   
     y = T.ivector('y')
-    Words = theano.shared(value = U, name = "Words")
+    Words = theano.tensor._shared(value = U, name = "Words")
     zero_vec_tensor = T.vector()
     zero_vec = np.zeros(img_w)
     set_zero = theano.function([zero_vec_tensor], updates=[(Words, T.set_subtensor(Words[0,:], zero_vec_tensor))], allow_input_downcast=True)
+   
     layer0_input = Words[T.cast(x.flatten(),dtype="int32")].reshape((x.shape[0],1,x.shape[1],Words.shape[1]))                                  
     conv_layers = []
     layer1_inputs = []
@@ -184,13 +187,19 @@ def train_conv_net(datasets,
         train_perf = 1 - np.mean(train_losses)
         val_losses = [val_model(i) for i in range(n_val_batches)]
         val_perf = 1- np.mean(val_losses)                        
-        print(('epoch: %i, training time: %.2f secs, train perf: %.2f %%, val perf: %.2f %%' % (epoch, time.time()-start_time, train_perf * 100., val_perf*100.)))
+        print(('epoch: %i, training time: %.2f secs, train perf: %.2f %%, val perf: %.2f %%'
+             % (epoch, time.time()-start_time, train_perf * 100., val_perf*100.)))
         if val_perf >= best_val_perf:
             best_val_perf = val_perf
             test_loss,test_y_pred = test_model_all(test_set_x,test_set_y)        
-            test_perf = 1- test_loss  
+            test_perf = 1- test_loss
+        val_losses.clear()
+        train_losses.clear()
 
-    save([params],"Models_CNN/modeli2.pkl")
+    #if(i==0):
+    save([Words,conv_layers,params],"Models_CNN/modeli2.pkl")
+
+
     #Free GPU Memory after running in CV (Deliu)
     Words.set_value([[]])     
     layer0_input=[]
@@ -207,18 +216,24 @@ def train_conv_net(datasets,
 
 
 
-def test_unseen_data(test_set_x,test_set_y,img_h,hidden_units,activations,dropout_rate):
-
+def test_unseen_data(U,test_set_x,test_set_y,img_h,hidden_units,activations,dropout_rate):
+    
+    rng = np.random.RandomState(3435)
     x = T.matrix('x')
-    params=load("Models_CNN/modeli2.pkl")
-    for param in params:
-        print(param)
+    y = T.ivector('y')
+    #Words = theano.shared(value = U, name = "Words")
+    Words,conv_layers,params=load("Models_CNN/modeli2.pkl")
+    #for param in params:
+    #    print(param)
+    layer1_inputs=[]
     for conv_layer in conv_layers:
+        #conv_layer.params.W_conv = params.W_conv
         layer1_input = conv_layer.output.flatten(2)
         layer1_inputs.append(layer1_input)
     layer1_input = T.concatenate(layer1_inputs,1)   
     classifier = MLPDropout(rng, input=layer1_input, layer_sizes=hidden_units, activations=activations, dropout_rates=dropout_rate)
-     
+    for i in range(len(classifier.params)):
+        classifier.params[i].set_value(params[i].get_value())
 
     test_pred_layers = []
     test_size = test_set_x.shape[0]
@@ -231,13 +246,14 @@ def test_unseen_data(test_set_x,test_set_y,img_h,hidden_units,activations,dropou
     test_error = T.mean(T.neq(test_y_pred, y))
     test_model_all = theano.function([x,y], [test_error], allow_input_downcast = True)
 
-    test_loss = test_model_all(test_set_x,test_set_y)        
-    test_perf = 1- test_loss
+    test_loss = test_model_all(test_set_x,test_set_y)       
+    test_perf = 1- test_loss[0]
+    Words.set_value([[]])
+    return test_perf
 
-    print(test_perf)
 def save(self, path):
     with open(path, 'wb') as f:
-        pickle.dump(self, f, -1)
+        pickle.dump(self, f)
     #logger.info('save model to path %s' % path)
     return None
 def load(path):
@@ -254,10 +270,10 @@ def shared_dataset(data_xy, borrow=True):
         variable) would lead to a large decrease in performance.
         """
         data_x, data_y = data_xy
-        shared_x = theano.shared(np.asarray(data_x,
+        shared_x = theano.tensor._shared(np.asarray(data_x,
                                                dtype=theano.config.floatX),
                                  borrow=borrow)
-        shared_y = theano.shared(np.asarray(data_y,
+        shared_y = theano.tensor._shared(np.asarray(data_y,
                                                dtype=theano.config.floatX),
                                  borrow=borrow)
         return shared_x, T.cast(shared_y, 'int32')
@@ -273,9 +289,9 @@ def sgd_updates_adadelta(params,cost,rho=0.95,epsilon=1e-6,norm_lim=9,word_vec_n
     gparams = []
     for param in params:
         empty = np.zeros_like(param.get_value())
-        exp_sqr_grads[param] = theano.shared(value=as_floatX(empty),name="exp_grad_%s" % param.name)
+        exp_sqr_grads[param] = theano.tensor._shared(value=as_floatX(empty),name="exp_grad_%s" % param.name)
         gp = T.grad(cost, param)
-        exp_sqr_ups[param] = theano.shared(value=as_floatX(empty), name="exp_grad_%s" % param.name)
+        exp_sqr_ups[param] = theano.tensor._shared(value=as_floatX(empty), name="exp_grad_%s" % param.name)
         gparams.append(gp)
     for param, gp in zip(params, gparams):
         exp_sg = exp_sqr_grads[param]
@@ -335,8 +351,8 @@ def make_idx_data_cv(revs, word_idx_map, cv, max_l=51,split_stentence_length=100
     print("Transforms sentences into a 2-d matrix.")
     train, test = [], []
     for rev in revs:
-        sent = get_idx_from_sent(rev["text"], word_idx_map, max_l, k, filter_h)  
-        sent =sent[0:split_stentence_length]
+        sent = get_idx_from_sent(rev["text"], word_idx_map, max_l, k, filter_h)    
+        #sent =sent[0:split_stentence_length]
         sent.append(rev["y"])
         if rev["split"]==cv:            
             test.append(sent)        
@@ -354,9 +370,10 @@ def load_test_data(revs,cv):
     return test_set
 
 if __name__=="__main__":
+    train_or_test="Train" #Train or Test
     print("loading data...", end=' ')
-    x = pickle.load(open("mr_.p","rb"))
-    revs, W, W2, word_idx_map, vocab = x[0], x[1], x[2], x[3], x[4]
+    x = pickle.load(open("mr_train.p","rb"))
+    revs, W, W2, word_idx_map, vocab,max_l = x[0], x[1], x[2], x[3], x[4],x[5]
     print("data loaded!")
     
     mode= "-static" #sys.argv[1]
@@ -376,40 +393,49 @@ if __name__=="__main__":
         print("using: word2vec vectors")
         U = W
     results = []
-    r = list(range(0,4)) 
-    print(r) 
+    r = list(range(0,10)) 
     test_set_x=[]
     test_y_pred=[]  
     for i in r:
-        datasets = make_idx_data_cv(revs, word_idx_map, i, max_l=70,k=300, filter_h=5)
-        img_h = len(datasets[0][0])-1
-        test_set_x = datasets[1][:,:img_h] 
-        test_set_y = np.asarray(datasets[1][:,-1],"int32")
-        test_unseen_data(test_set_x,test_set_y,img_h,hidden_units=[100,2],activations=[Iden],dropout_rate=[0.5])
-        #perf,test_set_x, test_y_pred = train_conv_net(datasets,
-        #                      U,
-        #                      lr_decay=0.95,
-        #                      filter_hs=[3,4,5],
-        #                      conv_non_linear="relu",
-        #                      hidden_units=[100,2], 
-        #                      shuffle_batch=True, 
-        #                      n_epochs=5, #25,
-        #                      sqr_norm_lim=9,
-        #                      non_static=non_static,
-        #                      batch_size=250,
-        #                      dropout_rate=[0.5])
-        #print("cv: " + str(i) + ", perf: " + str(perf))
-        #results.append(perf)  
+        print(i)
+        datasets = make_idx_data_cv(revs, word_idx_map, i, max_l=max_l,k=vec_size, filter_h=5)
+        if(train_or_test=="Test"):
+            img_h = len(datasets[0][0])-1
+            test_set_x = datasets[1][:,:img_h] 
+            test_set_y = np.asarray(datasets[1][:,-1],"int32")
+            print("Number of test samples:" + str(len(test_set_x)))
+
+            perf=test_unseen_data(1,test_set_x,test_set_y,img_h,hidden_units=[100,2],activations=[Iden],dropout_rate=[0.5])
+
+        elif(train_or_test=="Train"):
+            perf,test_set_x, test_y_pred = train_conv_net(i,datasets,
+                                  U,
+                                  lr_decay=0.95,
+                                  filter_hs=[3,4,5],
+                                  conv_non_linear="relu",
+                                  hidden_units=[50,2], 
+                                  shuffle_batch=True, 
+                                  n_epochs=25, #25,
+                                  sqr_norm_lim=9,
+                                  non_static=non_static,
+                                  batch_size=2500,
+                                  dropout_rate=[0.5])
+            dataset=[]
+            test_set_x=[]
+        else:
+            print("The mode does not exist...")
+        print("cv: " + str(i) + ", perf: " + str(perf))
+        results.append(perf)  
     
-    test_set = load_test_data(revs, 4)
-    res=[]
-    print(len(test_y_pred))
-    print((test_set_x))
-    for i in range(len(test_y_pred)):
-        stri = str(test_y_pred[i]) + "\t" + test_set[i]
-        res.append(stri)
+    #test_set = load_test_data(revs, 4)
+    #res=[]
+    #print(len(test_y_pred))
+    #print((test_set_x))
+    #for i in range(len(test_y_pred)):
+    #    stri = str(test_y_pred[i]) + "\t" + test_set[i]
+    #    res.append(stri)
 
 
         
-    Utils.write_list_to_file("rez.txt",res)
+    #Utils.write_list_to_file("rez.txt",res)
     print(str(np.mean(results)))

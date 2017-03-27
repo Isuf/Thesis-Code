@@ -5,6 +5,12 @@ import sys, re
 import pandas as pd
 
 import gensim
+
+from nltk.corpus import stopwords
+import config_file
+cachedStopWords = stopwords.words("english")
+
+vec_size=300
 def build_data_cv(data_folder, cv=10, clean_string=True):
     """
     Loads data and split into 10 folds.
@@ -21,11 +27,13 @@ def build_data_cv(data_folder, cv=10, clean_string=True):
                 orig_rev = clean_str(" ".join(rev))
             else:
                 orig_rev = " ".join(rev).lower()
+            #orig_rev= ' '.join([word for word in orig_rev.split() if word not in cachedStopWords])
+            orig_rev=orig_rev[0:1000]
             words = set(orig_rev.split())
             for word in words:
                 vocab[word] += 1
             datum  = {"y":1, 
-                      "text": orig_rev,                             
+                      "text": ' '.join([word for word in orig_rev.split() if word not in cachedStopWords]),                             
                       "num_words": len(orig_rev.split()),
                       "split": np.random.randint(0,cv)}
             revs.append(datum)
@@ -37,11 +45,13 @@ def build_data_cv(data_folder, cv=10, clean_string=True):
                 orig_rev = clean_str(" ".join(rev))
             else:
                 orig_rev = " ".join(rev).lower()
+            #orig_rev= ' '.join([word for word in orig_rev.split() if word not in cachedStopWords])
+            orig_rev=orig_rev[0:1000]
             words = set(orig_rev.split())
             for word in words:
                 vocab[word] += 1
             datum  = {"y":0, 
-                      "text": orig_rev,                             
+                      "text": ' '.join([word for word in orig_rev.split() if word not in cachedStopWords]),                             
                       "num_words": len(orig_rev.split()),
                       "split": np.random.randint(0,cv)}
             revs.append(datum)
@@ -132,9 +142,20 @@ def num_words_present_in_model(keyedvector_model, vocab):
             num = num+1
     return num
 if __name__=="__main__":    
+
+    parameters= config_file.Parameters()
+    param = parameters.param
+
+    picklFileName = "mr_train.p"
     w2v_file = "D:\Tema NTNU\Data\Google Word Vectors\GoogleNews-vectors-negative300.bin" #sys.argv[1] 
-    positive_file = "D:\\Tema NTNU\\Data\\Nulled\\Deliu\\positive.txt"
-    negative_file = "D:\\Tema NTNU\\Data\\Nulled\\Deliu\\negative.txt"
+    positive_file = param["positive_data_location"]
+    negative_file = param["negative_data_location"]
+    #"D:\\Tema NTNU\\Data\\Experiment\\positive_10K_long.txt"
+    
+    #"D:\\Tema NTNU\\Data\\Experiment\\negative_10K_long.txt"
+    ##positive_file = "D:\\Tema NTNU\\Data\\Hackhound\\Deliu\\positive.txt"
+    ##negative_file = "D:\\Tema NTNU\\Data\\Hackhound\\Deliu\\negative.txt"
+
     data_folder = [positive_file,negative_file]    
     #w2v_file ="w2c_hf_posts.bin"
 
@@ -155,12 +176,12 @@ if __name__=="__main__":
     #print("num words already in word2vec: " + str(len(w2v)))
     
     #add_unknown_words(w2v, vocab)
-    W, word_idx_map = get_W(w2v)
+    W, word_idx_map = get_W(w2v,k=vec_size)
     
     rand_vecs = {}
     #add_unknown_words(rand_vecs, vocab)
     #W2, _ = get_W(rand_vecs)
     W2=[]
-    pickle.dump([revs, W, W2, word_idx_map, vocab], open("mr_.p", "wb"))
+    pickle.dump([revs, W, W2, word_idx_map, vocab,max_l], open(picklFileName, "wb"))
     print("dataset created!")
     

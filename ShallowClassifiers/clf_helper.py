@@ -7,6 +7,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
 
+import Utils
 #For classificaition
 from sklearn.model_selection import train_test_split
 from sklearn.svm import LinearSVC
@@ -14,7 +15,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.linear_model import Perceptron
 
 from time import time
-
+import pickle
 ''' Benchmark classifiers'''
 def benchmark(clf, X_train,X_test,y_train,y_test):
 
@@ -30,6 +31,7 @@ def benchmark(clf, X_train,X_test,y_train,y_test):
     print("train time: %0.3fs" % train_time)
 
     t0 = time()
+    Utils.save_pickle(clf,"Models_Cnn/clf.pkl")
     pred = clf.predict(X_test)
     #pred = cross_val_predict(clf, X_test,y_test, cv=10)
     test_time = time() - t0
