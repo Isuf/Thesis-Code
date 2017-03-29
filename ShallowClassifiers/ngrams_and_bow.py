@@ -31,10 +31,13 @@ def feature_construction_ngrams(X_train,X_test,param):
          X_train = vectorizer.transform(X_train)
     else:
 
-         vectorizer = TfidfVectorizer( stop_words='english', 
-                                       sublinear_tf=True, max_df=0.95,
-                                       analyzer=param["ngrams_bow"]["ngram_unit"],
-                                       ngram_range=(param["ngrams_bow"]["min_ngrams"],param["ngrams_bow"]["max_ngrams"]))
+         #vectorizer = TfidfVectorizer( stop_words='english', 
+         #                              sublinear_tf=True, max_df=0.95,
+         #                              analyzer=param["ngrams_bow"]["ngram_unit"],
+         #                              ngram_range=(param["ngrams_bow"]["min_ngrams"],param["ngrams_bow"]["max_ngrams"]))
+         vectorizer = TfidfVectorizer(
+                                     analyzer=param["ngrams_bow"]["ngram_unit"],
+                                      ngram_range=(param["ngrams_bow"]["min_ngrams"],param["ngrams_bow"]["max_ngrams"]))
 
          X_train = vectorizer.fit_transform(X_train)
 

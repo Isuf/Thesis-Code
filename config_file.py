@@ -3,17 +3,18 @@ import os
 dataset_keywords = "Experiment"
 path = "D:\\Tema NTNU\\Data\\"+dataset_keywords+"\\Deliu\\" 
 
+#_10K_2703.txt
 class Parameters: 
 
       param = {} 
 
       def __init__(self):
           self.param={
-                      "pos_file" : "positive_20K_2603.txt",
-                      "neg_file" : "negative_20K_2603.txt",
+                      "pos_file" : "positive_nulled_length_less_500.txt",
+                      "neg_file" : "negative_mix_nulled_drugs.txt",
                       "positive_data_location" : "full_path_positive_data",
                       "negative_data_location" : "full_path_negative_data",
-                      "data" : "data.txt",
+                      "data" : "data_nulled_positive_negative_mixed.txt",
                       "labels": "labels.txt",
 
                       "word2vec" : {
@@ -27,7 +28,7 @@ class Parameters:
 
                      "ngrams_bow" : {
                                      "min_ngrams": 1,
-                                     "max_ngrams": 2,
+                                     "max_ngrams": 3,
                                      "use_hashing": False,   # Smth for sparsity
                                      "n_features": 2 ** 16,  #n_features when using the hashing vectorizer. 
                                      "ngram_unit": "char",   #'char' for character;  'word' for word

@@ -9,12 +9,14 @@ import sys
 import time
 warnings.filterwarnings("ignore")  
 import Utils 
-def test_unseen_data(U,test_set_x,test_set_y,img_h,hidden_units,activations,dropout_rate):
+
+vec_size=300
+def test_unseen_data(Words,conv_layers,params,U,test_set_x,test_set_y,img_h,hidden_units,activations,dropout_rate):
     
     rng = np.random.RandomState(3435)
     x = T.matrix('x')
     y = T.ivector('y')
-    Words,conv_layers,params=load("Models_CNN/modeli2.pkl")
+    #Words,conv_layers,params=load("Models_CNN/Glove.pkl")
     layer1_inputs=[]
     for conv_layer in conv_layers:
         #conv_layer.params.W_conv = params.W_conv
@@ -42,7 +44,7 @@ def test_unseen_data(U,test_set_x,test_set_y,img_h,hidden_units,activations,drop
 
     #test_loss,test_y_pred = test_model_all(test_set_x,test_set_y)       
     #test_perf = 1- test_loss[0]
-    Words.set_value([[]])
+    #Words.set_value([[]])
     return test_perf,test_y_pred
 
 # Transforms a sentence to list of indexes 
@@ -78,7 +80,7 @@ def make_idx_data_testing(revs,cv, word_idx_map,max_l=51, k=300, filter_h=5):
             test_data.append(rev["text"])
 
     test_matrix = np.array(test_matrix,dtype="int")
-    return test_matrix,test_data
+    return [test_matrix,test_data]
 
 def make_idx_data_cv(revs, word_idx_map, cv, max_l=51,split_stentence_length=100, k=300, filter_h=5):
     """
@@ -118,9 +120,13 @@ def load_test_data(revs,cv):
 
 
 if __name__=="__main__":
+    train_or_test="Test" #Train or Test
+    vectors="Glove"  #Google  #TOData #Glove
+    picklFileName = "mr_test_"+vectors +".p"
+
     print("loading data...", end=' ')
-    x = pickle.load(open("mr_test.p","rb"))
-    revs, W, W2, word_idx_map, vocab = x[0], x[1], x[2], x[3], x[4]
+    x = pickle.load(open(picklFileName,"rb"))
+    revs, W, W2, word_idx_map, vocab,max_l = x[0], x[1], x[2], x[3], x[4],x[5]
     print("data loaded!")
     
     mode= "-static" #sys.argv[1]
@@ -140,31 +146,52 @@ if __name__=="__main__":
         print("using: word2vec vectors")
         U = W
     results = []
+    Words=[]
+    conv_layers=[]
+    params=[]
 
+    results = []
+    #Words,conv_layers,params=load("Models_CNN/Glove.pkl")
+
+    data_to_write=[]
+    #for i in range(10):
+
+    #    testing_datasets,data_samples = make_idx_data_testing(revs,i,word_idx_map, max_l=96,k=300, filter_h=5)
+    #    img_h = len(testing_datasets[0])-1
+    #    test_set_x = testing_datasets[:,:img_h] 
+    #    test_set_y = np.asarray(testing_datasets[:,-1],"int32")
+    #    print("test sample size: " +str(len(test_set_x)))
+    #    data_to_write.append(data_samples)
+
+    #    test_perf,y_pred=test_unseen_data(Words,conv_layers,params,U,test_set_x,test_set_y,img_h,hidden_units=[100,2],activations=[Iden],dropout_rate=[0.5])
+    #    test_y_pred.append(y_pred)
+    #    print("cv: " + str(i) + ", perf: " + str(test_perf))
+    #    results.append(test_perf)  
+    
+    #print(str(np.mean(results)))
+
+    Words,conv_layers,params=load("Models_CNN/Glove.pkl")
+
+    r = list(range(0,10)) 
     test_set_x=[]
     test_y_pred=[]  
-    results=[]
-    data_to_write=[]
-    for i in range(10):
-        #datasets = make_idx_data_cv(revs, word_idx_map, i, max_l=96,k=300, filter_h=5)
-        #img_h = len(datasets[0][0])-1
-        #test_set_x = datasets[1][:,:img_h] 
-        #test_set_y = np.asarray(datasets[1][:,-1],"int32")
-        #print("test sample size: " +str(len(test_set_x)))
-        #test_perf,test_y_pred=test_unseen_data(U,test_set_x,test_set_y,img_h,hidden_units=[100,2],activations=[Iden],dropout_rate=[0.5])
-        testing_datasets,data_samples = make_idx_data_testing(revs,i,word_idx_map, max_l=96,k=300, filter_h=5)
+    for i in r:
+        print(i)
+        #datasets = make_idx_data_cv(revs, word_idx_map, i, max_l=max_l,k=vec_size, filter_h=5)
+        testing_datasets,data_samples = make_idx_data_testing(revs,i,word_idx_map, max_l=max_l,k=vec_size, filter_h=5)
+        #testing_datasets=testing_datasets[0:int(len(testing_datasets)/10)]
         img_h = len(testing_datasets[0])-1
         test_set_x = testing_datasets[:,:img_h] 
         test_set_y = np.asarray(testing_datasets[:,-1],"int32")
-        print("test sample size: " +str(len(test_set_x)))
+        print("Number of test samples:" + str(len(test_set_x)))
         data_to_write.append(data_samples)
 
-        test_perf,y_pred=test_unseen_data(U,test_set_x,test_set_y,img_h,hidden_units=[100,2],activations=[Iden],dropout_rate=[0.5])
+        test_perf,y_pred=test_unseen_data( Words,conv_layers,params,0,test_set_x,test_set_y,img_h,hidden_units=[100,2],activations=[Iden],dropout_rate=[0.5])
         test_y_pred.append(y_pred)
         print("cv: " + str(i) + ", perf: " + str(test_perf))
         results.append(test_perf)  
     
-    print(str(np.mean(results)))
+
 
     tmp_dataa=[]
     for testbatch in data_to_write:

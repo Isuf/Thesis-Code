@@ -113,7 +113,7 @@ def run_LDA(corpus_data, evaluate=False,evaluation_data=[],  num_topics=10, n_to
     if(store==True):
        store_topics(lda, tf, corpus_data)
 
-    pickle.dump([lda,tf,tf_vectorizer ], open("lda_model.p", "wb"))
+    pickle.dump([lda,tf,tf_vectorizer ], open("lda_model_Nulled.p", "wb"))
     return lda,tf,tf_vectorizer 
 ################################################
 

@@ -37,7 +37,7 @@ def Iden(x):
 
 vec_size=300
        
-def train_conv_net(i,datasets,
+def train_conv_net(vectors,i,datasets,
                    U,
                    img_w=300, 
                    filter_hs=[3,4,5],
@@ -197,7 +197,8 @@ def train_conv_net(i,datasets,
         train_losses.clear()
 
     #if(i==0):
-    save([Words,conv_layers,params],"Models_CNN/modeli2.pkl")
+    model_name=vectors+".pkl"
+    save([Words,conv_layers,params],"Models_CNN/"+model_name)
 
 
     #Free GPU Memory after running in CV (Deliu)
@@ -216,13 +217,13 @@ def train_conv_net(i,datasets,
 
 
 
-def test_unseen_data(U,test_set_x,test_set_y,img_h,hidden_units,activations,dropout_rate):
+def test_unseen_data(Words,conv_layers,params,test_set_x,test_set_y,img_h,hidden_units,activations,dropout_rate):
     
     rng = np.random.RandomState(3435)
     x = T.matrix('x')
     y = T.ivector('y')
     #Words = theano.shared(value = U, name = "Words")
-    Words,conv_layers,params=load("Models_CNN/modeli2.pkl")
+  
     #for param in params:
     #    print(param)
     layer1_inputs=[]
@@ -248,7 +249,9 @@ def test_unseen_data(U,test_set_x,test_set_y,img_h,hidden_units,activations,drop
 
     test_loss = test_model_all(test_set_x,test_set_y)       
     test_perf = 1- test_loss[0]
-    Words.set_value([[]])
+
+    #Words.set_value([[]])
+    test_pred_layers=[]
     return test_perf
 
 def save(self, path):
@@ -371,11 +374,15 @@ def load_test_data(revs,cv):
 
 if __name__=="__main__":
     train_or_test="Train" #Train or Test
+    vectors="Glove"  #Google  #TOData #Glove
+    picklFileName = "mr_train_"+vectors +".p"
+
     print("loading data...", end=' ')
-    x = pickle.load(open("mr_train.p","rb"))
+    x = pickle.load(open(picklFileName,"rb"))
     revs, W, W2, word_idx_map, vocab,max_l = x[0], x[1], x[2], x[3], x[4],x[5]
     print("data loaded!")
     
+    num_class=10
     mode= "-static" #sys.argv[1]
     word_vectors = "-word2vec" #sys.argv[2]
     
@@ -393,6 +400,12 @@ if __name__=="__main__":
         print("using: word2vec vectors")
         U = W
     results = []
+    Words=[]
+    conv_layers=[]
+    params=[]
+    if(train_or_test=="Test"):
+       Words,conv_layers,params=load("Models_CNN/"+vectors+".pkl")
+
     r = list(range(0,10)) 
     test_set_x=[]
     test_y_pred=[]  
@@ -400,25 +413,27 @@ if __name__=="__main__":
         print(i)
         datasets = make_idx_data_cv(revs, word_idx_map, i, max_l=max_l,k=vec_size, filter_h=5)
         if(train_or_test=="Test"):
+            
             img_h = len(datasets[0][0])-1
             test_set_x = datasets[1][:,:img_h] 
             test_set_y = np.asarray(datasets[1][:,-1],"int32")
             print("Number of test samples:" + str(len(test_set_x)))
 
-            perf=test_unseen_data(1,test_set_x,test_set_y,img_h,hidden_units=[100,2],activations=[Iden],dropout_rate=[0.5])
-
+            perf=test_unseen_data( Words,conv_layers,params,test_set_x,test_set_y,img_h,hidden_units=[100,2],activations=[Iden],dropout_rate=[0.5])
+            test_set_x=[]
+            test_set_y=[]
         elif(train_or_test=="Train"):
-            perf,test_set_x, test_y_pred = train_conv_net(i,datasets,
+            perf,test_set_x, test_y_pred = train_conv_net(vectors,i,datasets,
                                   U,
                                   lr_decay=0.95,
                                   filter_hs=[3,4,5],
                                   conv_non_linear="relu",
-                                  hidden_units=[50,2], 
+                                  hidden_units=[100,num_class], 
                                   shuffle_batch=True, 
                                   n_epochs=25, #25,
                                   sqr_norm_lim=9,
                                   non_static=non_static,
-                                  batch_size=2500,
+                                  batch_size=50,
                                   dropout_rate=[0.5])
             dataset=[]
             test_set_x=[]

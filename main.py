@@ -16,7 +16,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 parameters= config_file.Parameters()
 param = parameters.param
 
-labels =[ 1 if i<10000 else 0 for i in range(30000)]
+labels =[ 1 if i<10000 else 0 for i in range(20000)]
 ngrams_and_bow.run_classification(param["data"],labels,param)
 #doc2vec.run_classification(param["data"],labels,"Movie Review")
 
@@ -46,16 +46,17 @@ def seperate_relevant_data(all_test_data):
                 irrelevant_data.append(x)
     return relevant_data,irrelevant_data
 
-##dataset_locations ={ 
-##    "une": ("D:\\Tema NTNU\\Data\\Hackhound\\Deliu\\rez.txt","")
-##    }
+#dataset_locations ={ 
+#    "une": ("D:\Tema NTNU\Data\Experiment\Deliu\positive.txt","")
+#    }
 
-##print("Loading dataset...")
-###original_dataset = Utils.loadfile("rez.txt")#dataset_locations["une"][0])
+#print("Loading dataset...")
+#original_dataset = Utils.loadfile(dataset_locations["une"][0])
 
 ##relevant_data,irrelevant_data=seperate_relevant_data("rez.txt")
-##''' Topic Modeling ''' 
+#''' Topic Modeling ''' 
 ##lda,tf,tf_vectorizer=LDA.run_LDA(relevant_data,relevant_data,num_topics=10)
+#lda,tf,tf_vectorizer=LDA.run_LDA(original_dataset,original_dataset,num_topics=10)
 
 
 

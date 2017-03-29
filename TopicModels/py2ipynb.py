@@ -6,7 +6,7 @@ import sys
 import nbformat
 from nbformat.v4 import new_notebook, new_code_cell
 
-python_fileName = "TopicModels/FindTopics.py"
+python_fileName = "D:\Tema NTNU\Code\Thesis-Code\TopicModels\FindTopics.py"
 ipython_fileName ="Notebooks/topic_models.ipynb"
 
 nb = new_notebook()

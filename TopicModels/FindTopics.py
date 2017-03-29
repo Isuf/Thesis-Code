@@ -7,7 +7,7 @@ import pyLDAvis.sklearn
 pyLDAvis.enable_notebook()
 import pickle 
 
-x = pickle.load(open("lda_model.p","rb"))
+x = pickle.load(open("lda_model_Nulled.p","rb"))
 lda, tf, tf_vectorizer= x[0], x[1], x[2]
 lda.fit(tf)
 
