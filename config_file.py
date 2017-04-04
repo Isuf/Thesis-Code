@@ -14,7 +14,7 @@ class Parameters:
                       "neg_file" : "negative_mix_nulled_drugs.txt",
                       "positive_data_location" : "full_path_positive_data",
                       "negative_data_location" : "full_path_negative_data",
-                      "data" : "data_nulled_positive_negative_mixed.txt",
+                      "data" : "nulled_positive_1M.csv",
                       "labels": "labels.txt",
 
                       "word2vec" : {
@@ -28,7 +28,7 @@ class Parameters:
 
                      "ngrams_bow" : {
                                      "min_ngrams": 1,
-                                     "max_ngrams": 3,
+                                     "max_ngrams": 2,
                                      "use_hashing": False,   # Smth for sparsity
                                      "n_features": 2 ** 16,  #n_features when using the hashing vectorizer. 
                                      "ngram_unit": "char",   #'char' for character;  'word' for word

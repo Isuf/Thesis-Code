@@ -153,13 +153,14 @@ if __name__=="__main__":
 
     parameters= config_file.Parameters()
     param = parameters.param
-    vectors="Glove"  #Google  #TOData #Glove
+    vectors="TOData"  #Google  #TOData #Glove
     picklFileName = "mr_train_"+vectors +".p"
     glove_vectors = "D:\Tema NTNU\Data\GloveVectors\glove.6B.300d.txt"
     google_w2v_vectors = "D:\Tema NTNU\Data\Google Word Vectors\GoogleNews-vectors-negative300.bin" 
     trained_on_data_vectors = "w2c_hf_posts.bin"
     binary_format=True
     positive_file = param["positive_data_location"]
+    #positive_file=param["data"]
     negative_file = param["negative_data_location"]
     data_folder = [positive_file,negative_file]    
  

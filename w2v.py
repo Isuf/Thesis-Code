@@ -16,7 +16,6 @@ def build_word2vec(num_sentences,max_sentence_len,data, vocabulary_inv, name="Go
     else:
         #sentences = [sent["text"] for sent in data]
         sentences= [sent["text"].split() for sent in data]
-        print(sentences)
         model =gensim.models.word2vec.Word2Vec(sentences, size=vector_size,min_count=min_word_count,window=context)
        
         # If we don't plan to train the model any further, calling 

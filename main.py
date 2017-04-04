@@ -13,11 +13,22 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 #http://stackoverflow.com/questions/40824903/unorderable-types-error-when-importing-sklearn
 #### CHANGES MADE TO SKLEARN 
 
+train_or_test="Train" #Train or Test
+vectors="Glove"  #Google  #TOData #Glove
+picklFileName = "mr_train_"+vectors +".p"
+
+print("loading data...", end=' ')
+x = pickle.load(open(picklFileName,"rb"))
+revs, W, W2, word_idx_map, vocab,max_l = x[0], x[1], x[2], x[3], x[4],x[5]
+print("data loaded!")
+labels = [sent["y"] for sent in revs]
+data = [ sent["text"] for sent in revs]
 parameters= config_file.Parameters()
 param = parameters.param
 
-labels =[ 1 if i<10000 else 0 for i in range(20000)]
-ngrams_and_bow.run_classification(param["data"],labels,param)
+#labels =[ 1 if i<10000 else 0 for i in range(20000)]
+#ngrams_and_bow.run_classification(param["data"],labels,param)
+ngrams_and_bow.run_classification(data,labels,param)
 #doc2vec.run_classification(param["data"],labels,"Movie Review")
 
 
@@ -46,17 +57,18 @@ def seperate_relevant_data(all_test_data):
                 irrelevant_data.append(x)
     return relevant_data,irrelevant_data
 
-#dataset_locations ={ 
-#    "une": ("D:\Tema NTNU\Data\Experiment\Deliu\positive.txt","")
-#    }
+dataset_locations ={ 
+    "une": ("D:\Tema NTNU\Data\Classification\Deliu\\KeyLogger.txt","")
+    }
 
 #print("Loading dataset...")
 #original_dataset = Utils.loadfile(dataset_locations["une"][0])
+#print(len(original_dataset))
 
-##relevant_data,irrelevant_data=seperate_relevant_data("rez.txt")
-#''' Topic Modeling ''' 
-##lda,tf,tf_vectorizer=LDA.run_LDA(relevant_data,relevant_data,num_topics=10)
-#lda,tf,tf_vectorizer=LDA.run_LDA(original_dataset,original_dataset,num_topics=10)
+###relevant_data,irrelevant_data=seperate_relevant_data("rez.txt")
+##''' Topic Modeling ''' 
+###lda,tf,tf_vectorizer=LDA.run_LDA(relevant_data,relevant_data,num_topics=10)
+#lda,tf,tf_vectorizer=LDA.run_LDA(original_dataset,original_dataset,num_topics=5)
 
 
 

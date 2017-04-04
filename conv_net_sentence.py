@@ -382,7 +382,7 @@ if __name__=="__main__":
     revs, W, W2, word_idx_map, vocab,max_l = x[0], x[1], x[2], x[3], x[4],x[5]
     print("data loaded!")
     
-    num_class=10
+    num_class=4
     mode= "-static" #sys.argv[1]
     word_vectors = "-word2vec" #sys.argv[2]
     

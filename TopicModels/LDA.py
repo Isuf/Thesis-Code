@@ -87,7 +87,8 @@ def store_topics(lda,tf,corpus_docs):
         Utils.write_to_file(file_location,document_text,"a")
     print("data stored to corrensponding files") 
 
-def run_LDA(corpus_data, evaluate=False,evaluation_data=[],  num_topics=10, n_top_words=10, max_n_features =30000, max_df=0.95, min_df=1, max_iter=5,show_topics=True,store=True):
+def run_LDA(corpus_data, evaluate=False,evaluation_data=[],  num_topics=10, n_top_words=10, max_n_features =30000, max_df=0.95, min_df=1, max_iter=5,
+            show_topics=True,store=True):
     print_lda_parameters(num_topics, n_top_words, max_n_features)
 
     # 1. Preprocessing the data 

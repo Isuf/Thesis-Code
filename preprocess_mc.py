@@ -28,11 +28,12 @@ def build_data_cv(data_folder, cv=10, clean_string=True):
                     orig_rev = clean_str(" ".join(rev))
                 else:
                     orig_rev = " ".join(rev).lower()
+                orig_rev=orig_rev[0:1000]
                 words = set(orig_rev.split())
                 for word in words:
                     vocab[word] += 1
                 datum  = {"y":i, 
-                          "text": orig_rev,#' '.join([word for word in orig_rev.split() if word not in cachedStopWords]),                             
+                          "text": ' '.join([word for word in orig_rev.split() if word not in cachedStopWords]), #orig_rev,#                            
                           "num_words": len(orig_rev.split()),
                           "split": np.random.randint(0,cv)}
                 revs.append(datum)
@@ -69,18 +70,12 @@ def clean_str_sst(string):
     string = re.sub(r"\s{2,}", " ", string)    
     return string.strip().lower()
 
-topics={"0":"accuracy_garmin_nuvi_255W_gps.txt.data",
-        "1":"bathroom_bestwestern_hotel_sfo.txt.data",
-        "2":"battery-life_amazon_kindle.txt.data",
-        "3":"battery-life_ipod_nano_8gb.txt.data",
-        "4":"battery-life_netbook_1005ha.txt.data",
-        "5":"buttons_amazon_kindle.txt.data",
-        "6":"comfort_honda_accord_2008.txt.data",
-        "7":"comfort_toyota_camry_2007.txt.data",
-        "8":"directions_garmin_nuvi_255W_gps.txt.data",
-        "9":"display_garmin_nuvi_255W_gps.txt.data",
+topics={"0":"KeyLogger.txt",
+        "1":"Credentials.txt",
+        "2":"NoSecurity.txt",
+        "3":"Vulnerability.txt"
         }
-path ="D:\\Tema NTNU\\Data\\Opinosis\\topics"
+path ="D:\\Tema NTNU\\Data\\Classification\\Deliu"
 for i in range(len(topics)):
     topics[str(i)] = os.path.join(path,  topics[str(i)])
 
@@ -88,7 +83,7 @@ if __name__=="__main__":
 
     parameters= config_file.Parameters()
     param = parameters.param
-    vectors="Glove"  #Google  #TOData #Glove
+    vectors="Google"  #Google  #TOData #Glove
     picklFileName = "mr_train_"+vectors +".p"
     glove_vectors = "D:\Tema NTNU\Data\GloveVectors\glove.6B.300d.txt"
     google_w2v_vectors = "D:\Tema NTNU\Data\Google Word Vectors\GoogleNews-vectors-negative300.bin" 
@@ -97,7 +92,7 @@ if __name__=="__main__":
     positive_file = param["positive_data_location"]
     negative_file = param["negative_data_location"]
     #data_folder = [positive_file,negative_file]    
-    data_folder = [topics["0"],topics["1"],topics["2"],topics["3"],topics["4"],topics["5"],topics["6"],topics["7"],topics["8"],topics["9"]]  
+    data_folder = [topics["0"],topics["1"],topics["2"],topics["3"]]  
  
     if (vectors=="Glove"):
         w2v_file=glove_vectors

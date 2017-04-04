@@ -93,7 +93,7 @@ def run_classification(file_location, labels_location, param,Dataset_name="my_da
  
     # Step 1 : Data Load
     t0 = time()
-    data= Utils.loadfile(file_location)
+    data= file_location #Utils.loadfile(file_location)
     labels = labels_location
     #X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=test_data_size, random_state=0)
     duration = time() - t0
