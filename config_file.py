@@ -21,7 +21,7 @@ class Parameters:
                                     "Train" : True,
                                     "model_name":"w2c_hf_posts.bin",
                                     "vec_size" : 300,
-                                    "min_count" : 5,
+                                    "min_count" : 2,
                                     "Google_w2v" : "D:\\Official_Datasets\\Google word2vec trained\\GoogleNews-vectors-negative300.bin",
                                     "use_google_w2v" : False
                        },
@@ -31,8 +31,10 @@ class Parameters:
                                      "max_ngrams": 2,
                                      "use_hashing": False,   # Smth for sparsity
                                      "n_features": 2 ** 16,  #n_features when using the hashing vectorizer. 
-                                     "ngram_unit": "char",   #'char' for character;  'word' for word
-                                     "method": "ngrams"      # "bow" for Bag-of-Words;  "ngrams" for n(1,2,...) grams
+                                     "feature_level": "word",   #'char' for character;  'word' for word
+                                     "method": "ngrams" ,    # "bow" for Bag-of-Words;  "ngrams" for n(1,2,...) grams  #lsa 
+                                     "max_num_features":50000,
+                                     
                        }
       }
 

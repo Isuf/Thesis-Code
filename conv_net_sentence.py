@@ -19,6 +19,7 @@ import sys
 import time
 warnings.filterwarnings("ignore")   
 
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, classification_report, confusion_matrix
 import Utils
 
 #different non-linearities
@@ -161,6 +162,10 @@ def train_conv_net(vectors,i,datasets,
     test_y_pred = classifier.predict(test_layer1_input)
     test_error = T.mean(T.neq(test_y_pred, y))
 
+    #print(test_y_pred)
+    #test_precision=T.mean(np.asarray(test_y_pred))#(precision_score(np.asarray(test_y_pred), np.asarray(y)))#,average="macro"))
+    #test_recall= T.mean([5])#(precision_score(np.asarray(test_y_pred), np.asarray(y)))#average="macro"))
+
     test_model_all = theano.function([x,y],
                                      [test_error,test_y_pred],
                                      allow_input_downcast = True)   
@@ -172,6 +177,9 @@ def train_conv_net(vectors,i,datasets,
     val_perf = 0
     test_perf = 0       
     cost_epoch = 0    
+    precision=[]
+    recall = []
+    
     while (epoch < n_epochs):
         start_time = time.time()
         epoch = epoch + 1
@@ -193,26 +201,26 @@ def train_conv_net(vectors,i,datasets,
             best_val_perf = val_perf
             test_loss,test_y_pred = test_model_all(test_set_x,test_set_y)        
             test_perf = 1- test_loss
-        val_losses.clear()
-        train_losses.clear()
+
+        #val_losses.clear()
+        #train_losses.clear()
 
     #if(i==0):
-    model_name=vectors+".pkl"
-    save([Words,conv_layers,params],"Models_CNN/"+model_name)
-
+    #model_name=vectors+".pkl"
+    #save([Words,conv_layers,params],"Models_CNN/"+model_name)
 
     #Free GPU Memory after running in CV (Deliu)
     Words.set_value([[]])     
     layer0_input=[]
     test_layer0_input=[]
     #test_set_x =[]
-    test_set_y=[]
+    #test_set_y=[]
     val_set_x=[]
     val_set_y=[]
     train_set_x=[]
     train_set_y=[]
     
-    return test_perf, test_set_x, test_y_pred
+    return test_perf, test_set_x, test_y_pred,test_set_y
 
 
 
@@ -373,18 +381,19 @@ def load_test_data(revs,cv):
     return test_set
 
 if __name__=="__main__":
+
     train_or_test="Train" #Train or Test
-    vectors="Glove"  #Google  #TOData #Glove
+    vectors="Google"  #Google  #TOData #Glove
     picklFileName = "mr_train_"+vectors +".p"
 
-    print("loading data...", end=' ')
+    print("loading data..."+ picklFileName, end=' ')
     x = pickle.load(open(picklFileName,"rb"))
     revs, W, W2, word_idx_map, vocab,max_l = x[0], x[1], x[2], x[3], x[4],x[5]
     print("data loaded!")
     
-    num_class=4
+    num_class=6
     mode= "-static" #sys.argv[1]
-    word_vectors = "-word2vec" #sys.argv[2]
+    word_vectors = "-word2vec" #rand #word2vec
     
     if mode=="-nonstatic":
         print("model architecture: CNN-non-static")
@@ -405,6 +414,10 @@ if __name__=="__main__":
     params=[]
     if(train_or_test=="Test"):
        Words,conv_layers,params=load("Models_CNN/"+vectors+".pkl")
+   
+    precision_holder=[]
+    recall_holder =[]
+    f1_holder=[]
 
     r = list(range(0,10)) 
     test_set_x=[]
@@ -423,7 +436,7 @@ if __name__=="__main__":
             test_set_x=[]
             test_set_y=[]
         elif(train_or_test=="Train"):
-            perf,test_set_x, test_y_pred = train_conv_net(vectors,i,datasets,
+            perf,test_set_x, test_y_pred,test_set_y = train_conv_net(vectors,i,datasets,
                                   U,
                                   lr_decay=0.95,
                                   filter_hs=[3,4,5],
@@ -433,13 +446,17 @@ if __name__=="__main__":
                                   n_epochs=25, #25,
                                   sqr_norm_lim=9,
                                   non_static=non_static,
-                                  batch_size=50,
+                                  batch_size=500,
                                   dropout_rate=[0.5])
+            print(len(test_set_y))
+            f1_holder.append(f1_score(test_set_y, test_y_pred, average="macro"))
+            precision_holder.append(precision_score(test_set_y, test_y_pred, average="macro"))
+            recall_holder.append(recall_score(test_set_y, test_y_pred, average="macro"))
             dataset=[]
             test_set_x=[]
         else:
             print("The mode does not exist...")
-        print("cv: " + str(i) + ", perf: " + str(perf))
+        print("cv: " + str(i) + ", perf: " + str(perf)+ "; precision : " + str(precision_holder[i]) + "; recall : " +    str(recall_holder[i]) + "; f1 : " +        str(f1_holder[i]) )
         results.append(perf)  
     
     #test_set = load_test_data(revs, 4)
@@ -454,3 +471,6 @@ if __name__=="__main__":
         
     #Utils.write_list_to_file("rez.txt",res)
     print(str(np.mean(results)))
+    print("Average precision : " +str(np.mean(precision_holder)))
+    print("Average recall : " +str(np.mean(recall_holder)))
+    print("Average f1 : " +str(np.mean(f1_holder)))

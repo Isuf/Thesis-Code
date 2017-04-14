@@ -28,7 +28,7 @@ def build_data_cv(data_folder, cv=10, clean_string=True):
                     orig_rev = clean_str(" ".join(rev))
                 else:
                     orig_rev = " ".join(rev).lower()
-                orig_rev=orig_rev[0:1000]
+                orig_rev=orig_rev[0:800]
                 words = set(orig_rev.split())
                 for word in words:
                     vocab[word] += 1
@@ -58,7 +58,10 @@ def clean_str(string, TREC=False):
     string = re.sub(r"\(", " \( ", string) 
     string = re.sub(r"\)", " \) ", string) 
     string = re.sub(r"\?", " \? ", string) 
-    string = re.sub(r"\s{2,}", " ", string)    
+    string = re.sub(r"\s{2,}", " ", string) 
+
+    #Deliu
+    string = string.replace("\n","")   
     
     return string.strip() if TREC else string.strip().lower()
 
@@ -70,30 +73,11 @@ def clean_str_sst(string):
     string = re.sub(r"\s{2,}", " ", string)    
     return string.strip().lower()
 
-topics={"0":"KeyLogger.txt",
-        "1":"Credentials.txt",
-        "2":"NoSecurity.txt",
-        "3":"Vulnerability.txt"
-        }
-path ="D:\\Tema NTNU\\Data\\Classification\\Deliu"
-for i in range(len(topics)):
-    topics[str(i)] = os.path.join(path,  topics[str(i)])
 
-if __name__=="__main__":    
 
-    parameters= config_file.Parameters()
-    param = parameters.param
-    vectors="Google"  #Google  #TOData #Glove
-    picklFileName = "mr_train_"+vectors +".p"
-    glove_vectors = "D:\Tema NTNU\Data\GloveVectors\glove.6B.300d.txt"
-    google_w2v_vectors = "D:\Tema NTNU\Data\Google Word Vectors\GoogleNews-vectors-negative300.bin" 
-    trained_on_data_vectors = "w2c_hf_posts.bin"
-    binary_format=True
-    positive_file = param["positive_data_location"]
-    negative_file = param["negative_data_location"]
-    #data_folder = [positive_file,negative_file]    
-    data_folder = [topics["0"],topics["1"],topics["2"],topics["3"]]  
- 
+
+def create_ds(data_folder,param,picklFileName,glove_vectors,google_w2v_vectors,trained_on_data_vectors,vectors="Google",binary_format=True):
+    print("\n\n\nCreating the dataset ...")
     if (vectors=="Glove"):
         w2v_file=glove_vectors
         binary_format=False
@@ -101,38 +85,25 @@ if __name__=="__main__":
         w2v_file=google_w2v_vectors
     elif(vectors=="TOData"):
         w2v_file=trained_on_data_vectors
-
+    print(w2v_file)
     print("loading data...", end=' ')        
     revs, vocab = build_data_cv(data_folder, cv=10, clean_string=True)
     max_l = np.max(pd.DataFrame(revs)["num_words"])
     print("data loaded!")
-    print("number of sentences: " + str(len(revs)))
-    print("vocab size: " + str(len(vocab)))
-    print("max sentence length: " + str(max_l))
-    print("loading "+ vectors + " vectors...", end=' ')
+    print("         number of sentences: " + str(len(revs)))
+    print("         vocab size: " + str(len(vocab)))
+    print("         max sentence length: " + str(max_l))
+    print("         loading "+ vectors + " vectors...", end=' ')
 
-    #txt =[]
-    #for item in revs:
-    #    txt.append(item["text"])
-    #print(txt)
-    #pickle.dump(txt, open("rawtext.txt","wb"))
-    W, word_idx_map =w2v.build_word2vec(len(revs),max_l,revs,vocab,name=vectors,binary_format=binary_format,vector_size=vec_size)
-    #w2v = gensim.models.KeyedVectors.load_word2vec_format(w2v_file, binary=binary_format)   
-    ##w2v = load_bin_vec(w2v_file, vocab)
-    #print("word2vec loaded!")
-    ##print(w2v.syn0.shape)
-    #n=num_words_present_in_model(w2v, vocab)
-    #print("num words already in word2vec: " + str(n))
-    ##print("num words already in word2vec: " + str(len(w2v)))
-    
-    #w2v_dict = create_dict_from_word2vec(w2v)
-    #add_unknown_words(w2v_dict, vocab)
-    #W, word_idx_map = get_W(w2v_dict,k=vec_size)
+    print(" Loading Vectors") 
+    W, word_idx_map =w2v.build_word2vec(len(revs),max_l,revs,vocab,name=vectors,binary_format=binary_format,vector_size=vec_size,context=10)
+    ##import tsne 
+    ##tsne.visualize_vectors(W,vocab,word_idx_map)
     
     rand_vecs = {}
-    #add_unknown_words(rand_vecs, vocab)
-    #W2, _ = get_W(rand_vecs)
-    W2=[]
+    print(" Generating random vectors...")
+    W2=w2v.get_random_vectors(rand_vecs,vocab,300)
+
     pickle.dump([revs, W, W2, word_idx_map, vocab,max_l,vectors], open(picklFileName, "wb"))
     print("dataset created!")
     
